@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Texty",
+  "version": "1.0.1",
+  "description": "A text utility extension with AI assistance",
+  "icons": {
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "css": [
+        "content/overlay.css"
+      ],
+      "js": [
+        "content/overlay.js"
+      ]
+    }
+  ],
+  "action": {
+    "default_icon": {
+      "48": "icons/icon-48.png",
+      "96": "icons/icon-96.png"
+    },
+    "default_popup": "popup/popup.html"
+  }
+}
