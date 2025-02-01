@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*' # Trigger on version tags
 
+# Add permissions block at the top level
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
