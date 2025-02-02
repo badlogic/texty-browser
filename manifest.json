@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Texty",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "A text utility extension with AI assistance",
   "icons": {
     "48": "icons/icon-48.png",
@@ -25,9 +25,6 @@
     {
       "matches": [
         "<all_urls>"
-      ],
-      "css": [
-        "content/overlay.css"
       ],
       "js": [
         "content/overlay.js"
