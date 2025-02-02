@@ -29,13 +29,36 @@ function saveSettings(settings) {
 }
 
 function createOverlayButton() {
+  const buttonContainer = document.createElement("div");
+  const shadow = buttonContainer.attachShadow({ mode: "open" });
+
+  const styles = document.createElement("style");
+  styles.textContent = `
+    .texty-overlay-button {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      background: white;
+      color: #000;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      z-index: 10000;
+      width: fit-content;
+      min-width: min-content;
+      white-space: nowrap;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+  `;
+
   overlayButton = document.createElement("button");
   overlayButton.className = "texty-overlay-button";
   overlayButton.textContent = "Ty";
-  overlayButton.style.width = "fit-content";
-  overlayButton.style.minWidth = "min-content";
   overlayButton.addEventListener("click", showPanel);
-  document.body.appendChild(overlayButton);
+
+  shadow.appendChild(styles);
+  shadow.appendChild(overlayButton);
+  document.body.appendChild(buttonContainer);
 
   // Create modal backdrop
   const backdrop = document.createElement("div");
@@ -45,6 +68,142 @@ function createOverlayButton() {
 }
 
 async function createPanel() {
+  const panelContainer = document.createElement("div");
+  const shadow = panelContainer.attachShadow({ mode: "open" });
+
+  // Define styles directly
+  const styles = document.createElement("style");
+  styles.textContent = `
+    .texty-panel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      color: #000;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      z-index: 10001;
+      width: 500px;
+      display: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .texty-panel textarea {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: white;
+      color: #000;
+      font-family: inherit;
+      font-size: 14px;
+      line-height: 1.4;
+      resize: vertical;
+    }
+
+    .texty-panel input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: white;
+      color: #000;
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    .texty-panel label {
+      display: block;
+      margin-bottom: 4px;
+      color: #000;
+      font-size: 14px;
+    }
+
+    .texty-panel-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .texty-panel button {
+      padding: 8px 16px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .texty-panel button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+
+    .texty-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 8px;
+    }
+
+    .texty-settings-toggle {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      padding: 4px 8px;
+      font-size: 0.9em;
+    }
+
+    .texty-settings-toggle:hover {
+      text-decoration: underline;
+    }
+
+    .texty-required {
+      border-color: #ff4444;
+      background-color: #fff8f8;
+    }
+
+    .texty-required:focus {
+      outline-color: #ff4444;
+    }
+
+    .texty-error {
+      background-color: #fff2f2;
+      border: 1px solid #ffcdd2;
+      color: #d32f2f;
+      padding: 8px 12px;
+      margin: 8px 0;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .status-text {
+      margin-right: auto;
+      color: #666;
+      font-size: 0.9em;
+    }
+
+    .texty-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 10000;
+    }
+  `;
+
   panel = document.createElement("div");
   panel.className = "texty-panel";
   panel.innerHTML = `
@@ -72,7 +231,13 @@ async function createPanel() {
       <button id="texty-close">Close</button>
     </div>
   `;
-  document.body.appendChild(panel);
+
+  shadow.appendChild(styles);
+  shadow.appendChild(panel);
+  document.body.appendChild(panelContainer);
+
+  // Update panel reference to point to the one in shadow DOM
+  panel = shadow.querySelector('.texty-panel');
 
   // Add click handler to backdrop
   const backdrop = document.querySelector('.texty-backdrop');
@@ -85,57 +250,70 @@ async function createPanel() {
     }
   });
 
-  // Initialize settings
-  const settings = await loadSettings();
-  document.getElementById("texty-endpoint").value = settings.endpoint;
-  document.getElementById("texty-api-key").value = settings.apiKey;
-  document.getElementById("texty-model").value = settings.model;
+  // Update all event listeners to use shadow DOM queries
+  const settingsToggle = shadow.getElementById("texty-settings-toggle");
+  settingsToggle.addEventListener("click", toggleSettings);
 
-  // Add settings event listeners
-  document.getElementById("texty-settings-toggle").addEventListener("click", toggleSettings);
   ["texty-endpoint", "texty-api-key", "texty-model"].forEach(id => {
-    document.getElementById(id).addEventListener("change", updateSettings);
+    shadow.getElementById(id).addEventListener("change", updateSettings);
   });
 
-  document.getElementById("texty-fix").addEventListener("click", handleFix);
-  document.getElementById("texty-apply").addEventListener("click", handleApply);
-  document.getElementById("texty-close").addEventListener("click", hidePanel);
-  document.getElementById("texty-prompt").value = defaultPrompt;
+  shadow.getElementById("texty-fix").addEventListener("click", handleFix);
+  shadow.getElementById("texty-apply").addEventListener("click", handleApply);
+  shadow.getElementById("texty-close").addEventListener("click", hidePanel);
+
+  // Initialize settings
+  const settings = await loadSettings();
+  shadow.getElementById("texty-endpoint").value = settings.endpoint;
+  shadow.getElementById("texty-api-key").value = settings.apiKey;
+  shadow.getElementById("texty-model").value = settings.model;
+  shadow.getElementById("texty-prompt").value = defaultPrompt;
 
   // Check settings validity on load
-  await checkSettingsValidity();
+  await checkSettingsValidity(shadow);
 }
 
 function showPanel() {
   if (currentInput) {
     panel.style.display = "block";
     document.querySelector('.texty-backdrop').style.display = "block";
-    document.getElementById("texty-content").value = currentInput.value;
+
+    // Get content from either contenteditable or traditional input
+    const content = currentInput.isContentEditable ?
+      currentInput.textContent :
+      currentInput.value;
+
+    const shadow = panel.getRootNode();
+    shadow.getElementById("texty-content").value = content;
   }
 }
 
 function hidePanel() {
   panel.style.display = "none";
   document.querySelector('.texty-backdrop').style.display = "none";
-  document.getElementById("texty-content").value = "";
+
+  const shadow = panel.getRootNode();
+  shadow.getElementById("texty-content").value = "";
+
   if (currentInput) {
     currentInput.focus();
   }
 }
 
 function toggleSettings() {
-  const settingsPanel = document.getElementById("texty-settings");
+  const shadow = panel.getRootNode();
+  const settingsPanel = shadow.getElementById("texty-settings");
   const isHidden = settingsPanel.style.display === "none";
   settingsPanel.style.display = isHidden ? "block" : "none";
 }
 
-async function checkSettingsValidity() {
+async function checkSettingsValidity(shadow) {
   const settings = await loadSettings();
   const isValid = settings.endpoint && settings.apiKey && settings.model;
 
-  const fixButton = document.getElementById("texty-fix");
-  const applyButton = document.getElementById("texty-apply");
-  const settingsPanel = document.getElementById("texty-settings");
+  const fixButton = shadow.getElementById("texty-fix");
+  const applyButton = shadow.getElementById("texty-apply");
+  const settingsPanel = shadow.getElementById("texty-settings");
 
   fixButton.disabled = !isValid;
   applyButton.disabled = !isValid;
@@ -145,29 +323,31 @@ async function checkSettingsValidity() {
 
     // Highlight missing fields
     ["texty-endpoint", "texty-api-key", "texty-model"].forEach(id => {
-      const input = document.getElementById(id);
+      const input = shadow.getElementById(id);
       input.classList.toggle("texty-required", !input.value);
     });
   }
 }
 
 async function updateSettings() {
+  const shadow = panel.getRootNode();
   const settings = {
-    endpoint: document.getElementById("texty-endpoint").value,
-    apiKey: document.getElementById("texty-api-key").value,
-    model: document.getElementById("texty-model").value
+    endpoint: shadow.getElementById("texty-endpoint").value,
+    apiKey: shadow.getElementById("texty-api-key").value,
+    model: shadow.getElementById("texty-model").value
   };
   await saveSettings(settings);
-  await checkSettingsValidity();
+  await checkSettingsValidity(shadow);
 }
 
 async function handleFix() {
-  const fixButton = document.getElementById("texty-fix");
-  const applyButton = document.getElementById("texty-apply");
-  const content = document.getElementById("texty-content");
-  const prompt = document.getElementById("texty-prompt");
-  const errorDiv = document.getElementById("texty-error");
-  const statusText = document.querySelector(".status-text");
+  const shadow = panel.getRootNode();
+  const fixButton = shadow.getElementById("texty-fix");
+  const applyButton = shadow.getElementById("texty-apply");
+  const content = shadow.getElementById("texty-content");
+  const prompt = shadow.getElementById("texty-prompt");
+  const errorDiv = shadow.getElementById("texty-error");
+  const statusText = shadow.querySelector(".status-text");
 
   // Reset error state
   errorDiv.style.display = "none";
@@ -220,7 +400,10 @@ async function handleFix() {
 
 function handleApply() {
   if (currentInput) {
-    currentInput.value = document.getElementById("texty-content").value;
+    const shadow = panel.getRootNode();
+    const content = shadow.getElementById("texty-content").value;
+
+    currentInput.value = content;
     currentInput.dispatchEvent(new Event("input", { bubbles: true }));
     currentInput.dispatchEvent(new Event("change", { bubbles: true }));
     hidePanel();
@@ -228,15 +411,28 @@ function handleApply() {
 }
 
 function handleFocus(event) {
-  if (
-    (event.target.tagName === "TEXTAREA" ||
-    (event.target.tagName === "INPUT" && event.target.type === "text")) &&
-    !event.target.closest('.texty-panel')
-  ) {
-    currentInput = event.target;
+  console.log('Focus event triggered on:', event.target);
+  const target = event.target;
+
+  // Check if element is text-editable through various means
+  const isEditable = (
+    // Traditional inputs
+    (target.tagName === "TEXTAREA" ||
+     (target.tagName === "INPUT" && target.type === "text")) ||
+    // Contenteditable elements
+    target.isContentEditable ||
+    // ARIA textbox role
+    target.getAttribute("role") === "textbox" ||
+    // Rich text editors often use these roles
+    target.getAttribute("role") === "textbox" ||
+    target.getAttribute("role") === "input"
+  );
+
+  if (isEditable && !target.closest('.texty-panel')) {
+    currentInput = target;
     overlayButton.style.display = "block";
 
-    const rect = currentInput.getBoundingClientRect();
+    const rect = target.getBoundingClientRect();
     overlayButton.style.position = "fixed";
     overlayButton.style.top = `${rect.top}px`;
     overlayButton.style.left = `${rect.right + 5}px`;
