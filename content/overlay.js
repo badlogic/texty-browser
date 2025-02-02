@@ -33,7 +33,7 @@ function createOverlayButton() {
   const shadow = buttonContainer.attachShadow({ mode: "open" });
 
   const styles = document.createElement("style");
-  styles.textContent = `
+  styles.textContent = /*css*/`
     .texty-overlay-button {
       font-size: 12px;
       padding: 4px 8px;
@@ -72,7 +72,7 @@ async function createPanel() {
   const shadow = panelContainer.attachShadow({ mode: "open" });
 
   const styles = document.createElement("style");
-  styles.textContent = `
+  styles.textContent = /*css*/`
     dialog {
       padding: 20px;
       border: none;
@@ -83,6 +83,7 @@ async function createPanel() {
       color: #000;
       position: fixed;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      box-sizing: border-box;
     }
     dialog::backdrop {
       background: rgba(0, 0, 0, 0.5);
@@ -91,37 +92,16 @@ async function createPanel() {
       background: white;
       color: #000;
       width: 100%;
-      padding: 0 20px;
+      box-sizing: border-box;
     }
-    .texty-panel textarea {
-      width: 100%;
-      margin-bottom: 10px;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      background: white;
-      color: #000;
-      font-family: inherit;
-      font-size: 14px;
-      line-height: 1.4;
-      resize: vertical;
-    }
+    .texty-panel textarea,
     .texty-panel input {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      background: white;
-      color: #000;
-      font-family: inherit;
-      font-size: 14px;
+      width: calc(100% - 16px);  /* Account for input padding */
+      margin: 0 8px 10px 8px;    /* Add horizontal margin */
+      box-sizing: border-box;
     }
     .texty-panel label {
-      display: block;
-      margin-bottom: 4px;
-      color: #000;
-      font-size: 14px;
+      margin: 0 8px 4px 8px;     /* Add horizontal margin to labels */
     }
     .texty-panel-buttons {
       display: flex;
@@ -192,6 +172,33 @@ async function createPanel() {
       height: 100%;
       background-color: rgba(0, 0, 0, 0.5);
       z-index: 10000;
+    }
+    .texty-panel textarea {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #fff;
+      color: #000;
+      font-family: inherit;
+      font-size: 14px;
+      line-height: 1.4;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+
+    .texty-panel input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #fff;
+      color: #000;
+      font-family: inherit;
+      font-size: 14px;
+      box-sizing: border-box;
     }
   `;
 
