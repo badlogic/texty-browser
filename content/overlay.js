@@ -245,16 +245,6 @@ async function createPanel() {
   // Update panel reference to point to the dialog
   panel = dialog;
 
-  // Add click handler for backdrop
-  dialog.addEventListener('click', (e) => {
-    const rect = dialog.getBoundingClientRect();
-    const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.bottom &&
-      rect.left <= e.clientX && e.clientX <= rect.right);
-    if (!isInDialog) {
-      hidePanel();
-    }
-  });
-
   // Update all event listeners to use shadow DOM queries
   const settingsToggle = shadow.getElementById("texty-settings-toggle");
   settingsToggle.addEventListener("click", toggleSettings);
