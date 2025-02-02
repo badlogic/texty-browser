@@ -71,25 +71,28 @@ async function createPanel() {
   const panelContainer = document.createElement("div");
   const shadow = panelContainer.attachShadow({ mode: "open" });
 
-  // Define styles directly
   const styles = document.createElement("style");
   styles.textContent = `
-    .texty-panel {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      color: #000;
+    dialog {
       padding: 20px;
+      border: none;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-      z-index: 10001;
       width: 500px;
-      display: none;
+      background: white;
+      color: #000;
+      position: fixed;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.5);
+    }
+    .texty-panel {
+      background: white;
+      color: #000;
+      width: 100%;
+      padding: 0 20px;
+    }
     .texty-panel textarea {
       width: 100%;
       margin-bottom: 10px;
@@ -103,7 +106,6 @@ async function createPanel() {
       line-height: 1.4;
       resize: vertical;
     }
-
     .texty-panel input {
       width: 100%;
       padding: 8px;
@@ -115,20 +117,17 @@ async function createPanel() {
       font-family: inherit;
       font-size: 14px;
     }
-
     .texty-panel label {
       display: block;
       margin-bottom: 4px;
       color: #000;
       font-size: 14px;
     }
-
     .texty-panel-buttons {
       display: flex;
       gap: 10px;
       justify-content: flex-end;
     }
-
     .texty-panel button {
       padding: 8px 16px;
       background-color: #4caf50;
@@ -140,21 +139,19 @@ async function createPanel() {
       font-size: 14px;
       line-height: 1.4;
     }
-
     .texty-panel button:disabled {
       background-color: #cccccc;
       cursor: not-allowed;
     }
-
     .texty-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px;
+      padding: 8px 0;
       border-bottom: 1px solid #ddd;
-      margin-bottom: 8px;
+      margin: 0 -20px 8px -20px;
+      padding: 8px 20px;
     }
-
     .texty-settings-toggle {
       background: none;
       border: none;
@@ -163,20 +160,16 @@ async function createPanel() {
       padding: 4px 8px;
       font-size: 0.9em;
     }
-
     .texty-settings-toggle:hover {
       text-decoration: underline;
     }
-
     .texty-required {
       border-color: #ff4444;
       background-color: #fff8f8;
     }
-
     .texty-required:focus {
       outline-color: #ff4444;
     }
-
     .texty-error {
       background-color: #fff2f2;
       border: 1px solid #ffcdd2;
@@ -186,13 +179,11 @@ async function createPanel() {
       border-radius: 4px;
       font-size: 14px;
     }
-
     .status-text {
       margin-right: auto;
       color: #666;
       font-size: 0.9em;
     }
-
     .texty-backdrop {
       position: fixed;
       top: 0;
@@ -204,48 +195,55 @@ async function createPanel() {
     }
   `;
 
-  panel = document.createElement("div");
-  panel.className = "texty-panel";
-  panel.innerHTML = `
-    <div class="texty-header">
-      <strong>Texty</strong>
-      <button id="texty-settings-toggle" class="texty-settings-toggle">Settings</button>
-    </div>
-    <div id="texty-settings" class="texty-settings-panel" style="display: none;">
-      <label for="texty-endpoint">API Endpoint *</label>
-      <input type="text" id="texty-endpoint" required />
-      <label for="texty-api-key">API Key *</label>
-      <input type="password" id="texty-api-key" required />
-      <label for="texty-model">Model Name *</label>
-      <input type="text" id="texty-model" required />
-    </div>
-    <div id="texty-error" class="texty-error" style="display: none;"></div>
-    <label for="texty-content">Content</label>
-    <textarea id="texty-content" rows="10" placeholder="Content to edit..."></textarea>
-    <label for="texty-prompt">Prompt</label>
-    <textarea id="texty-prompt" rows="4"></textarea>
-    <div class="texty-panel-buttons">
-      <span class="status-text" style="display: none;">Fixing...</span>
-      <button id="texty-fix">Fix</button>
-      <button id="texty-apply">Apply</button>
-      <button id="texty-close">Close</button>
+  const dialog = document.createElement("dialog");
+  dialog.innerHTML = `
+    <div class="texty-panel">
+      <div class="texty-header">
+        <strong>Texty</strong>
+        <button id="texty-settings-toggle" class="texty-settings-toggle">Settings</button>
+      </div>
+      <div id="texty-settings" class="texty-settings-panel" style="display: none;">
+        <label for="texty-endpoint">API Endpoint *</label>
+        <input type="text" id="texty-endpoint" required />
+        <label for="texty-api-key">API Key *</label>
+        <input id="texty-api-key"
+               type="password"
+               name="_${Math.random().toString(36)}"
+               required
+               autocomplete="new-password"
+               autocorrect="off"
+               autocapitalize="off"
+               spellcheck="false" />
+        <label for="texty-model">Model Name *</label>
+        <input type="text" id="texty-model" required />
+      </div>
+      <div id="texty-error" class="texty-error" style="display: none;"></div>
+      <label for="texty-content">Content</label>
+      <textarea id="texty-content" rows="10" placeholder="Content to edit..."></textarea>
+      <label for="texty-prompt">Prompt</label>
+      <textarea id="texty-prompt" rows="4"></textarea>
+      <div class="texty-panel-buttons">
+        <span class="status-text" style="display: none;">Fixing...</span>
+        <button id="texty-fix">Fix</button>
+        <button id="texty-apply">Apply</button>
+        <button id="texty-close">Close</button>
+      </div>
     </div>
   `;
 
   shadow.appendChild(styles);
-  shadow.appendChild(panel);
+  shadow.appendChild(dialog);
   document.body.appendChild(panelContainer);
 
-  // Update panel reference to point to the one in shadow DOM
-  panel = shadow.querySelector('.texty-panel');
+  // Update panel reference to point to the dialog
+  panel = dialog;
 
-  // Add click handler to backdrop
-  const backdrop = document.querySelector('.texty-backdrop');
-  backdrop.addEventListener('click', hidePanel);
-
-  // Add escape key handler
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && panel.style.display === 'block') {
+  // Add click handler for backdrop
+  dialog.addEventListener('click', (e) => {
+    const rect = dialog.getBoundingClientRect();
+    const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.bottom &&
+      rect.left <= e.clientX && e.clientX <= rect.right);
+    if (!isInDialog) {
       hidePanel();
     }
   });
@@ -262,6 +260,15 @@ async function createPanel() {
   shadow.getElementById("texty-apply").addEventListener("click", handleApply);
   shadow.getElementById("texty-close").addEventListener("click", hidePanel);
 
+  // Add event listeners to prevent event bubbling
+  const inputs = shadow.querySelectorAll('input, textarea');
+  inputs.forEach(input => {
+    input.addEventListener('keydown', e => e.stopPropagation());
+    input.addEventListener('keyup', e => e.stopPropagation());
+    input.addEventListener('keypress', e => e.stopPropagation());
+    input.addEventListener('input', e => e.stopPropagation());
+  });
+
   // Initialize settings
   const settings = await loadSettings();
   shadow.getElementById("texty-endpoint").value = settings.endpoint;
@@ -269,46 +276,39 @@ async function createPanel() {
   shadow.getElementById("texty-model").value = settings.model;
   shadow.getElementById("texty-prompt").value = defaultPrompt;
 
-  // Check settings validity on load
   await checkSettingsValidity(shadow);
+
+  return dialog;
 }
 
-async function showPanel() {
+function showPanel() {
   if (currentInput) {
     const shadow = panel.getRootNode();
-    panel.style.display = "block";
-    document.querySelector('.texty-backdrop').style.display = "block";
 
     let content;
     if (currentInput.tagName === "TEXTAREA" ||
         (currentInput.tagName === "INPUT" && currentInput.type === "text")) {
       content = currentInput.value;
     } else {
-      // For complex editors, get their content via selection
       currentInput.focus();
       document.execCommand('selectAll', false);
       content = window.getSelection().toString();
-
-      // Clear selection
       window.getSelection().removeAllRanges();
     }
 
+    panel.showModal();
     const contentArea = shadow.getElementById("texty-content");
     const promptArea = shadow.getElementById("texty-prompt");
 
     contentArea.value = content;
-
-    // Ensure our textareas are not readonly
     contentArea.removeAttribute('readonly');
     promptArea.removeAttribute('readonly');
   }
 }
 
 function hidePanel() {
-  panel.style.display = "none";
-  document.querySelector('.texty-backdrop').style.display = "none";
-
   const shadow = panel.getRootNode();
+  panel.close();
   shadow.getElementById("texty-content").value = "";
 
   if (currentInput) {
@@ -418,6 +418,7 @@ async function handleApply() {
   if (currentInput) {
     const shadow = panel.getRootNode();
     const content = shadow.getElementById("texty-content").value;
+    hidePanel();
 
     if (currentInput.tagName === "TEXTAREA" ||
         (currentInput.tagName === "INPUT" && currentInput.type === "text")) {
@@ -426,16 +427,34 @@ async function handleApply() {
       currentInput.dispatchEvent(new Event("input", { bubbles: true }));
       currentInput.dispatchEvent(new Event("change", { bubbles: true }));
     } else {
-      // For complex editors, use execCommand
-      currentInput.focus();
-      document.execCommand('selectAll', false);
-      document.execCommand('delete', false);
-      document.execCommand('insertText', false, content);
+      // For complex editors, use modern APIs after a small delay
+      setTimeout(() => {
+        currentInput.focus();
+        const selection = window.getSelection();
+        selection.selectAllChildren(currentInput);
 
-      // Dispatch input event for good measure
-      currentInput.dispatchEvent(new Event("input", { bubbles: true }));
+        // Create a new InputEvent for deletion
+        currentInput.dispatchEvent(new InputEvent('beforeinput', {
+          inputType: 'deleteContent',
+          bubbles: true,
+          cancelable: true
+        }));
+
+        // Create a new InputEvent for text insertion
+        currentInput.dispatchEvent(new InputEvent('beforeinput', {
+          inputType: 'insertText',
+          data: content,
+          bubbles: true,
+          cancelable: true
+        }));
+
+        // Actually perform the text insertion
+        document.execCommand('insertText', false, content);
+
+        // Dispatch input event for good measure
+        currentInput.dispatchEvent(new Event("input", { bubbles: true }));
+      }, 0);
     }
-    hidePanel();
   }
 }
 
