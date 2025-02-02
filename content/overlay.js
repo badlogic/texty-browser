@@ -1,3 +1,12 @@
+// Use the appropriate API namespace
+const browserAPI = (typeof chrome !== 'undefined' ? chrome :
+                   typeof browser !== 'undefined' ? browser :
+                   null);
+
+if (!browserAPI) {
+    throw new Error('No browser API found');
+}
+
 let currentInput = null;
 let overlayButton = null;
 let panel = null;
@@ -10,13 +19,13 @@ let defaultSettings = {
 };
 
 function loadSettings() {
-  return browser.storage.local.get('texty-settings').then(result => {
+  return browserAPI.storage.local.get('texty-settings').then(result => {
     return result['texty-settings'] || defaultSettings;
   });
 }
 
 function saveSettings(settings) {
-  return browser.storage.local.set({ 'texty-settings': settings });
+  return browserAPI.storage.local.set({ 'texty-settings': settings });
 }
 
 function createOverlayButton() {
@@ -173,7 +182,7 @@ async function handleFix() {
 
   try {
     const settings = await loadSettings();
-    const response = await chrome.runtime.sendMessage({
+    const response = await browserAPI.runtime.sendMessage({
       type: 'makeApiCall',
       endpoint: settings.endpoint,
       apiKey: settings.apiKey,

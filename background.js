@@ -1,9 +1,18 @@
+// Use the appropriate API namespace
+const browserAPI = (typeof chrome !== 'undefined' ? chrome :
+                   typeof browser !== 'undefined' ? browser :
+                   null);
+
+if (!browserAPI) {
+    throw new Error('No browser API found');
+}
+
 // Initialize on installation
-browser.runtime.onInstalled.addListener(() => {
+browserAPI.runtime.onInstalled.addListener(() => {
   // Set default settings if not already set
-  browser.storage.local.get('texty-settings').then(result => {
+  browserAPI.storage.local.get('texty-settings').then(result => {
     if (!result['texty-settings']) {
-      browser.storage.local.set({
+      browserAPI.storage.local.set({
         'texty-settings': {
           endpoint: "https://api.openai.com/v1/chat/completions",
           apiKey: "",
@@ -15,7 +24,7 @@ browser.runtime.onInstalled.addListener(() => {
 });
 
 // Listen for messages from content script
-browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browserAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'makeApiCall') {
     fetch(request.endpoint, {
       method: "POST",
