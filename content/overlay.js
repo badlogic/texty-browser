@@ -273,18 +273,34 @@ async function createPanel() {
   await checkSettingsValidity(shadow);
 }
 
-function showPanel() {
+async function showPanel() {
   if (currentInput) {
+    const shadow = panel.getRootNode();
     panel.style.display = "block";
     document.querySelector('.texty-backdrop').style.display = "block";
 
-    // Get content from either contenteditable or traditional input
-    const content = currentInput.isContentEditable ?
-      currentInput.textContent :
-      currentInput.value;
+    let content;
+    if (currentInput.tagName === "TEXTAREA" ||
+        (currentInput.tagName === "INPUT" && currentInput.type === "text")) {
+      content = currentInput.value;
+    } else {
+      // For complex editors, get their content via selection
+      currentInput.focus();
+      document.execCommand('selectAll', false);
+      content = window.getSelection().toString();
 
-    const shadow = panel.getRootNode();
-    shadow.getElementById("texty-content").value = content;
+      // Clear selection
+      window.getSelection().removeAllRanges();
+    }
+
+    const contentArea = shadow.getElementById("texty-content");
+    const promptArea = shadow.getElementById("texty-prompt");
+
+    contentArea.value = content;
+
+    // Ensure our textareas are not readonly
+    contentArea.removeAttribute('readonly');
+    promptArea.removeAttribute('readonly');
   }
 }
 
@@ -398,14 +414,27 @@ async function handleFix() {
   }
 }
 
-function handleApply() {
+async function handleApply() {
   if (currentInput) {
     const shadow = panel.getRootNode();
     const content = shadow.getElementById("texty-content").value;
 
-    currentInput.value = content;
-    currentInput.dispatchEvent(new Event("input", { bubbles: true }));
-    currentInput.dispatchEvent(new Event("change", { bubbles: true }));
+    if (currentInput.tagName === "TEXTAREA" ||
+        (currentInput.tagName === "INPUT" && currentInput.type === "text")) {
+      // Handle regular inputs
+      currentInput.value = content;
+      currentInput.dispatchEvent(new Event("input", { bubbles: true }));
+      currentInput.dispatchEvent(new Event("change", { bubbles: true }));
+    } else {
+      // For complex editors, use execCommand
+      currentInput.focus();
+      document.execCommand('selectAll', false);
+      document.execCommand('delete', false);
+      document.execCommand('insertText', false, content);
+
+      // Dispatch input event for good measure
+      currentInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
     hidePanel();
   }
 }
@@ -414,6 +443,11 @@ function handleFocus(event) {
   console.log('Focus event triggered on:', event.target);
   const target = event.target;
 
+  // Skip if the target is within our panel
+  if (panel && panel.contains(target)) {
+    return;
+  }
+
   // Check if element is text-editable through various means
   const isEditable = (
     // Traditional inputs
@@ -421,10 +455,13 @@ function handleFocus(event) {
      (target.tagName === "INPUT" && target.type === "text")) ||
     // Contenteditable elements
     target.isContentEditable ||
+    // Draft.js (Twitter)
+    target.classList.contains('public-DraftEditor-content') ||
+    // ProseMirror (Bluesky)
+    target.classList.contains('ProseMirror') ||
     // ARIA textbox role
     target.getAttribute("role") === "textbox" ||
     // Rich text editors often use these roles
-    target.getAttribute("role") === "textbox" ||
     target.getAttribute("role") === "input"
   );
 
