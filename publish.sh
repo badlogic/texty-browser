@@ -32,8 +32,10 @@ git tag "v$new_version"
 git push origin main "v$new_version"
 
 echo "⏳ Waiting for GitHub release to be created..."
+echo "Checking URL https://github.com/$GITHUB_USER/texty-browser/releases/tag/v$new_version"
 while true; do
-    if curl --silent "https://api.github.com/repos/$GITHUB_USER/texty/releases/tags/v$new_version" | grep -q "id"; then
+    status_code=$(curl -s -o /dev/null -w "%{http_code}" "https://github.com/$GITHUB_USER/texty-browser/releases/tag/v$new_version")
+    if [ "$status_code" != "404" ]; then
         echo "✅ Release v$new_version is now available!"
         break
     fi
